@@ -1,0 +1,54 @@
+services:
+  app:
+    build: .
+    container_name: log-simulator-app
+    command: ["python","/app/log_simulator/generate.py","--format","app","--dir","/logs","--rate","${RATE}","--error-ratio","${ERROR_RATIO}","--jitter","${JITTER}"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  json:
+    build: .
+    container_name: log-simulator-json
+    command: ["python","/app/log_simulator/generate.py","--format","json","--dir","/logs","--rate","${RATE}","--error-ratio","${ERROR_RATIO}","--jitter","${JITTER}"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  nginx:
+    build: .
+    container_name: log-simulator-nginx
+    command: ["python","/app/log_simulator/generate.py","--format","nginx","--dir","/logs","--rate","${RATE}","--error-ratio","${ERROR_RATIO}","--jitter","${JITTER}"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  db:
+    build: .
+    container_name: log-simulator-db
+    command: ["python","/app/log_simulator/generate.py","--format","db","--dir","/logs","--rate","${RATE}","--error-ratio","${ERROR_RATIO}","--jitter","${JITTER}"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  system:
+    build: .
+    container_name: log-simulator-system
+    command: ["python","/app/log_simulator/generate.py","--format","system","--dir","/logs","--rate","${RATE}","--error-ratio","${ERROR_RATIO}","--jitter","${JITTER}"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  k8s:
+    build: .
+    container_name: log-simulator-k8s
+    command: ["python","/app/log_simulator/generate.py","--format","k8s","--dir","/logs","--rate","${RATE}","--error-ratio","${ERROR_RATIO}","--jitter","${JITTER}"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  rotator:
+    build: .
+    container_name: log-simulator-rotator
+    entrypoint: ["/bin/bash","/app/rotator.sh"]
+    environment:
+      - ROTATE_INTERVAL=${ROTATE_INTERVAL}
+      - ROTATE_MIN_SIZE_MB=${ROTATE_MIN_SIZE_MB}
+      - COMPRESS=${COMPRESS}
+    volumes: [ "${LOG_DIR}:/logs" ]
+    restart: unless-stopped
+  cli:
+    build: .
+    container_name: log-simulator-cli
+    entrypoint: ["/bin/sh","-lc"]
+    command: ["sleep infinity"]
+    volumes: [ "${LOG_DIR}:/logs" ]
+    profiles: ["cli"]

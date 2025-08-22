@@ -1,0 +1,13 @@
+# env-файлы
+.env
+
+# каталоги с логами
+logs/
+*.log
+*.log.*
+
+# IDE и системные файлы
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
