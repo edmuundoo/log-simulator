@@ -1,61 +1,61 @@
-# log-simulator — тренировочная фабрика логов
+# log-simulator — log training factory
 
-Генерирует *в реальном времени* разные форматы логов в `logs/`:
-- `app` — текстовые уровни (DEBUG/INFO/WARN/ERROR), request-id, сообщения
-- `json` — JSON Lines, с метаданными и иногда stacktrace
-- `nginx` — access-лог со статусами 2xx/4xx/5xx и временем ответа
-- `db` — PostgreSQL-подобные сообщения (deadlock, timeout, duplicate key и т.п.)
+Generates *real-time* different log formats in `logs/`:
+- `app` — text levels (DEBUG/INFO/WARN/ERROR), request-id, messages
+- `json` — JSON Lines, with metadata and sometimes stacktrace
+- `nginx` — access log with 2xx/4xx/5xx statuses and response time
+- `db` — PostgreSQL-like messages (deadlock, timeout, duplicate key, etc.)
 - `system` — systemd-style (`web.service[123]: ERROR ...`)
-- `k8s` — JSON с полями Kubernetes (namespace, pod, container) и статусами
+- `k8s` — JSON with Kubernetes fields (namespace, pod, container) and statuses
 
-В комплекте:
-- **docker-compose** (несколько сервисов, каждый пишет свой формат)
-- **ротация и компрессия** `.gz` и/или `.zst` (отдельный сервис `rotator`)
-- **Makefile** с пресетами: `top`, `p95`, `5xx`, `bulk` и пр.
+Included:
+- **docker-compose** (multiple services, each writes its own format)
+- **rotation and compression** `.gz` and/or `.zst` (separate `rotator` service)
+- **Makefile** with presets: `top`, `p95`, `5xx`, `bulk`, etc.
 
-## Быстрый старт
+## Quick Start
 
 ```bash
-# 1) Запуск
+# 1) Start
 docker compose up -d
-# Проверить, что файлы растут
+# Check that files are growing
 ls -lah logs/*
 
-# 2) Смотреть поток
+# 2) Watch the stream
 docker compose logs -f app json nginx db system k8s
 
-# 3) Остановить
+# 3) Stop
 docker compose down
 ```
 
-По умолчанию настройки берутся из `.env` (создан по умолчанию).
+By default, settings are taken from `.env` (created by default).
 
-## Настройки (.env)
+## Settings (.env)
 
 ```ini
-RATE=10            # строк в секунду на каждый сервис
-ERROR_RATIO=0.25   # доля «ошибок» (0..1)
-JITTER=0.25        # джиттер сна (процент от периода)
-ROTATE_INTERVAL=30 # сек между проверками ротации
+RATE=10            # lines per second per service
+ERROR_RATIO=0.25   # ratio of "errors" (0..1)
+JITTER=0.25        # sleep jitter (percentage of period)
+ROTATE_INTERVAL=30 # seconds between rotation checks
 ROTATE_MIN_SIZE_MB=5
 COMPRESS=both      # gzip|zstd|both
 LOG_DIR=./logs
 ```
 
-## Полезные команды (Makefile)
+## Useful Commands (Makefile)
 
 ```bash
-make up         # поднять сервисы
-make down       # остановить и удалить
-make logs       # follow по всем
-make rotate     # включить/перезапустить ротатор
-make clean      # удалить логи
+make up         # start services
+make down       # stop and remove
+make logs       # follow all
+make rotate     # enable/restart rotator
+make clean      # remove logs
 
-make top        # топ повторяющихся ошибок
-make p95        # 95-й перцентиль времени ответа (nginx)
-make 5xx        # счетчик 5xx по эндпоинтам
+make top        # top repeating errors
+make p95        # 95th percentile response time (nginx)
+make 5xx        # 5xx counter by endpoints
 
-# Сгенерировать большие файлы быстро и сжать:
+# Generate large files quickly and compress:
 make bulk LINES=200000 RATE=5000 FORMAT=all COMPRESS=both
 ```
-Зависимости для анализ-скриптов: `ripgrep (rg)`, `jq`, `awk`.
+Dependencies for analysis scripts: `ripgrep (rg)`, `jq`, `awk`.
